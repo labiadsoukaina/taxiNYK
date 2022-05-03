@@ -1,0 +1,15 @@
+DevEntities:
+ - !DevEntity
+    name: Vendor
+    fields: 
+        VendorID:
+            type: Char
+            taille: 50
+        VendorName:
+            type: Char
+            taille: 50
+
+    business_key:
+         - VendorID
+
+Links:
