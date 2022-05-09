@@ -60,60 +60,81 @@ class Lambda:
             self.Logger.debug("I created the Database {}".format(self.files_name[0].rsplit("_", 1)[0]))
         
         try:
-            db_name = 'yellow_tripdata'
-            suffix = self.files_name[0].split("_", 2)[1]
-            database = postgre.connectTOdbComplete(db_name,"postgres", "root")
-            postgre.executeRequest(database, dvengine.getSqlQueryCreateSchema('Staging'))
-            print(postgre.checkIfTableExists(database, 'stg_'+suffix))
-            print(postgre.checkIfTableExists(database, 'tmp'))
-            if postgre.checkIfTableExists(database, 'stg_'+suffix) != 'OK':
-                request2 = dvengine.getSqlQueryCreateStaging(self.Workspace.repository, self.files_name[0], 'Staging')
-                postgre.executeRequest(database, request2)
-                self.Logger.debug("I created the Staging{}".format(suffix))
-            path = self.Workspace.repository
-            for file_name in self.Workspace.fileNames:
-                file_name = os.path.basename(file_name)
+            for file in self.files_name :
+                db_name = 'yellow_tripdata'
+                suffix = file.split("_", 2)[1]
+                database = postgre.connectTOdbComplete(db_name,"postgres", "root")
+                postgre.executeRequest(database, dvengine.getSqlQueryCreateSchema('Staging'))
+                print(postgre.checkIfTableExists(database, 'stg_'+suffix))
+                #postgre.dropstagingTable(database, 'staging.stg_'+suffix)
+                if postgre.checkIfTableExists(database, 'stg_'+suffix) != 'OK':
+                    request2 = dvengine.getSqlQueryCreateStaging(self.Workspace.repository, file, 'Staging')
+                    postgre.executeRequest(database, request2)
+                    self.Logger.debug("I created the Staging{}".format(suffix))
+                path = self.Workspace.repository
+                file_name = os.path.basename(file)
                 print(file_name)
                 postgre.loadFile(database, path+'\\'+file_name, 'staging' , 'stg_'+suffix, ',')
-            postgre.executeRequest(database, dvengine.getSqlQueryCreateSchema('raw_dv'))
-            list_hubs, list_satellites, list_links = local.readObjectFile("object_config.yml")
-            message = "Started reading my Objects"
-            self.Logger.debug(message)
-            message= 'I found {} HUB, {} Satellite'.format(len(list_hubs), len(list_satellites))
-            self.Logger.debug(message)
-            for entity in list_hubs:
-                print('new one')
-                name = entity.name.removeprefix('HUB_')
-                hub = Hub(entity.name, entity.business_key, entity.fields)
-                print(hub)
-                dvengine = DvEngine(hub, None)
-                if postgre.checkIfTableExists(database, entity.name.lower()) != 'OK':
-                    request1 = dvengine.getSqlQueryCreateDevEntity('raw_dv', None)
-                    postgre.executeRequest(database, request1)
+                postgre.executeRequest(database, dvengine.getSqlQueryCreateSchema('raw_dv'))
+                list_files = local.readRegexFile("files_config.yml")
+                for f in list_files:
+                    if re.match(f.regex, file):
+                        config = f.file_name
+                        print('heeeeere')
+                        print(config)
+                list_hubs, list_satellites, list_links = local.readObjectFile(config)
+                message = "Started reading my Objects"
+                self.Logger.debug(message)
+                message= 'I found {} HUB, {} Satellite'.format(len(list_hubs), len(list_satellites))
+                self.Logger.debug(message)
+                for entity in list_hubs:
+                    print('new one')
+                    name = entity.name.removeprefix('HUB_')
+                    hub = Hub(entity.name, entity.business_key, entity.fields)
+                    print(hub)
+                    dvengine = DvEngine(hub, None)
+                    if postgre.checkIfTableExists(database, entity.name.lower()) != 'OK':
+                        request1 = dvengine.getSqlQueryCreateDevEntity('raw_dv', None)
+                        postgre.executeRequest(database, request1)
+                        self.Logger.debug("I created the {}".format(entity.name))
+                    request = dvengine.insertiORupdateEntity(file_name)
+                    postgre.executeRequest(database, dvengine.insertiORupdateEntity(file_name))
+                for entity in list_satellites:
+                    name = entity.name.removeprefix('SAT_')
+                    sat = Satellite(entity.name, entity.business_key, entity.fields)
+                    dvengine = DvEngine(sat, None)
+                    if postgre.checkIfTableExists(database, entity.name.lower()) != 'OK':
+                        request1 = dvengine.getSqlQueryCreateDevEntity2('raw_dv', None)
+                        postgre.executeRequest(database, request1)
+                    postgre.executeRequest(database, dvengine.insertiORupdateEntity(file_name))
+                    dvengine.insertiORupdateEntity(file_name)
                     self.Logger.debug("I created the {}".format(entity.name))
-                request = dvengine.insertiORupdateEntity(file_name)
-                postgre.executeRequest(database, dvengine.insertiORupdateEntity(file_name))
-            for entity in list_satellites:
-                name = entity.name.removeprefix('SAT_')
-                sat = Satellite(entity.name, entity.business_key, entity.fields)
-                dvengine = DvEngine(sat, None)
-                if postgre.checkIfTableExists(database, entity.name.lower()) != 'OK':
-                    request1 = dvengine.getSqlQueryCreateDevEntity('raw_dv', None)
-                    postgre.executeRequest(database, request1)
-                postgre.executeRequest(database, dvengine.insertiORupdateEntity(file_name))
-                dvengine.insertiORupdateEntity(file_name)
-                self.Logger.debug("I created the {}".format(entity.name))
 
-            
-            #postgre.truncatestagingTable(database, 'staging.stg_'+suffix)
-            #for file_name in self.Workspace.fileNames:
-             #   local.copyFile(self.Workspace.repository+'\\'+file_name, self.archive_repository+'\\'+file_name)
+                for link in list_links:
+                    l = Link(link.name, link.member, link.fields, link.business_key)
+                    dvengine = DvEngine(None, l)
+                    if postgre.checkIfTableExists(database, link.name.lower()) != 'OK':
+                        request1 = dvengine.getSqlQueryCreateLink2(None, 'raw_dv')
+                        postgre.executeRequest(database, request1)
+                    postgre.executeRequest(database,dvengine.insertiORupdateLink2(list_hubs, file))
+                    name = link.name.removeprefix('LINK_')
+                    satellite = Satellite('SAT_'+name, link.business_key, link.fields)
+                    print('iciiiiiiiiiii')
+                    print(satellite.business_key)
+                    dvengine1 = DvEngine(satellite, None)
+                    name = 'sat_'+ name.lower()
+                    print('ici non')
+                    print(satellite)
+                    if postgre.checkIfTableExists(database, name) != 'OK':
+                        postgre.executeRequest(database,dvengine1.getSqlQueryCreateDevEntity2('raw_dv', None))
+                    postgre.executeRequest(database,dvengine1.insertiORupdateEntity(file_name))
+
+                #local.copyFile(self.Workspace.repository+'\\'+file_name, self.archive_repository+'\\'+file_name)
 
 
         except Exception as e:
             self.Logger.error("ERROR:{}".format(e))
-            #for file_name in self.Workspace.fileNames:
-            #    local.copyFile(self.Workspace.repository+'\\'+file_name, self.error_repository+'\\'+file_name)
+           #local.copyFile(self.Workspace.repository+'\\'+file_name, self.error_repository+'\\'+file_name)
             raise
                
             
