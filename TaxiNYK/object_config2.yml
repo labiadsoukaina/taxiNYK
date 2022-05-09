@@ -1,0 +1,44 @@
+DevEntities:
+
+Links:
+  - !Link
+    name: TripPaymentLocationVendor
+    member:
+         Location:
+            business_key: 
+                      PULocationID
+ 
+         Location:
+            business_key: 
+                      DOLocationID           
+         Vendor:
+            business_key: 
+                      VendorID
+
+         Rate:
+             business_key:
+                     RateCodeID
+       
+         Payment:
+             business_key:
+                      PaymentID
+    fields:
+         Trip_distance:
+            type: Char
+            taille: 30
+         tpep_pickup_datetime:
+            type: Char
+            taille: 30
+         tpep_dropoff_datetime:
+            type: Char
+            taille: 30
+         passenger_count:
+            type: Char
+            taille: 5
+    business_key:
+         - PULocationID
+         - DOLocationID  
+         - VendorID
+         - RateCodeID
+         - PaymentID         
+          

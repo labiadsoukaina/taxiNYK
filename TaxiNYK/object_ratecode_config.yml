@@ -1,0 +1,14 @@
+DevEntities:
+ - !DevEntity
+    name: Rate
+    fields: 
+        RateCodeID:
+            type: Char
+            taille: 50
+        RateCodeName:
+            type: Char
+            taille: 50
+
+    business_key:
+         - RateCodeID
+Links:
