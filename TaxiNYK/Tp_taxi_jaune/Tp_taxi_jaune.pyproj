@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="file.py" />
     <Compile Include="location.py" />
     <Compile Include="localLocation.py" />
     <Compile Include="devEntity.py" />

@@ -41,6 +41,6 @@ class PostgreDbServer(DbServer):
         cursor = database.cursor()
         cursor.execute('COPY ' + schema_name+'.'+table_name+' FROM \'' + file_name+'\' DELIMITER \'' +delimiter+'\' CSV HEADER')
     
-    def truncatestagingTable(self, database, table):
+    def DropStagingTable(self, database, table):
         cursor = database.cursor()
-        cursor.execute('Drop Table ' + table)
+        cursor.execute('Drop Table If Exists ' + table)

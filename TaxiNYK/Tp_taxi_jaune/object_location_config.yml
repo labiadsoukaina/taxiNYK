@@ -3,7 +3,7 @@ DevEntities:
     name: Location
     fields: 
         LocationID:
-            type: Char
+            type: Decimal
             taille: 100    
         Borough:
             type: Char

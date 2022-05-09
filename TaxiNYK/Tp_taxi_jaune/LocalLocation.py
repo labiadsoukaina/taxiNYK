@@ -4,6 +4,8 @@ from DevEntity import DevEntity
 from satellite import Satellite
 from workspace import Workspace
 from link import Link
+from file import File
+import file
 import link
 import satellite
 import DevEntity
@@ -20,6 +22,7 @@ class LocalLocation(Location):
         loader = yaml.SafeLoader
         loader.add_constructor("!DevEntity", DevEntity.entity_constructor)
         loader.add_constructor("!Link", link.link_constructor)
+        loader.add_constructor("!File", file.file_constructor)
         return loader
 
     def get_Configloader(self):
@@ -32,20 +35,26 @@ class LocalLocation(Location):
         hubs = []
         satellites = []
         links = []
-        list_DvEntity = data["DevEntities"]
-        print(data)
-        for o in list_DvEntity:
-            name_hub = "HUB_"+o.name
-            name_sat = "SAT_"+o.name
-            hubs.append(Hub(name_hub, o.business_key, o.fields))
-            satellites.append(Satellite(name_sat, o.business_key, o.fields))
+        if data["DevEntities"] != None: 
+            list_DvEntity = data["DevEntities"]
+            print(data)
+            for o in list_DvEntity:
+                name_hub = "HUB_"+o.name
+                name_sat = "SAT_"+o.name
+                hubs.append(Hub(name_hub, o.business_key, o.fields))
+                satellites.append(Satellite(name_sat, o.business_key, o.fields))
 
         if data["Links"] != None :
             list_Links = data["Links"]
             for l in list_Links:
                 name_link = "LINK_"+l.name
                 member = l.member
-                links.append(Link(name_link, member))
+                for i in member:
+                    print(i)
+                if l.fields != None:
+                    fields = l.fields
+                    business_key = l.business_key
+                links.append(Link(name_link, member, fields, business_key))
         
         return hubs, satellites, links
 
@@ -71,6 +80,18 @@ class LocalLocation(Location):
                 works.append(Workspace(o.repository))
             
         return list_Works, list_repositories
+
+    def readRegexFile(self, location):
+        data = yaml.load(open(location, "rb"), Loader=self.get_Objectloader())
+        files = []
+        list_files = data["Files"]
+        print(data)
+        for o in list_files:
+            regex = o.regex
+            file_name = o.file_name
+            files.append(File(regex, file_name))
+
+        return files
     
     def copyFile(self, src, dst):
         #mettre move au lieu de copy

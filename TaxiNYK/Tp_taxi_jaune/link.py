@@ -1,10 +1,12 @@
 import yaml
 
 class Link:
-  def __init__(self, name, member):
+  def __init__(self, name, member, fields, business_key):
       self.name = name
       self.member = member
-  
+      self.fields = fields
+      self.business_key = business_key
+
   def __str__(self):
       return "I am the " + self.name 
 

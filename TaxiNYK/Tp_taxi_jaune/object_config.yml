@@ -34,10 +34,31 @@ DevEntities:
          
 Links:
   - !Link
-    name: TripLocation
+    name: TripPaymentLocationVendor
     member: 
-         - Trip
-         - Location
-         - Vendor
-         - Rate
-         - Payment
+         Trip:
+            business_key: 
+                      TripID
+            foreign_key: 
+                    - TripID
+         Location:
+            business_key: 
+                      LocationID
+            foreign_key: 
+                    - PULocationID
+                    - DOLocationID                     
+         Vendor:
+            business_key: 
+                      VendorID
+            foreign_key: 
+                    - VendorID
+         Rate:
+             business_key:
+                     RateCodeID
+             foreign_key: 
+                    - RateCodeID        
+         Payment:
+             business_key:
+                      PaymentID
+             foreign_key:
+                    - PaymentID
