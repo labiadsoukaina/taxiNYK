@@ -1,0 +1,21 @@
+Files:
+- !File
+    regex: .*_trip_.*\.csv$
+    file_name: object_config2.yml
+      
+- !File
+    regex: .*_rate_.*\.csv$
+    file_name: object_ratecode_config.yml
+      
+- !File
+    regex: .*_payment_.*\.csv$
+    file_name: object_payment_config.yml
+
+- !File
+    regex: .*_vendor_.*\.csv$
+    file_name: object_vendor_config.yml   
+
+- !File
+    regex: .*_location_.*\.csv$
+    file_name: object_location_config.yml   
+ 
